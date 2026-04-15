@@ -1,0 +1,18 @@
+.heatmap-wrap { overflow-x: auto; }
+.heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.heatmap-label { padding: 8px 12px; color: var(--text-muted); font-weight: 600; text-align: left; white-space: nowrap; }
+.heatmap-col-h { padding: 8px 6px; color: var(--text-muted); font-size: 11px; text-align: center; white-space: nowrap; font-weight: 500; }
+.heatmap-row-label { padding: 8px 12px; color: var(--text-secondary); font-weight: 500; white-space: nowrap; }
+.heatmap-cell { width: 80px; height: 36px; border: 1px solid rgba(255,255,255,0.04); text-align: center; vertical-align: middle; transition: opacity 0.2s; }
+.heatmap-cell:hover { opacity: 0.8; }
+.heatmap-val { font-size: 11px; font-weight: 600; color: #fff; }
+
+.topv-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.topv-row:last-child { border-bottom: none; }
+.topv-icon { color: var(--accent-cyan); font-size: 14px; width: 20px; }
+.topv-name { flex: 1; font-size: 13px; color: var(--text-secondary); }
+.topv-views { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+.pattern-card { display: flex; align-items: flex-start; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
+.pattern-icon { font-size: 18px; flex-shrink: 0; }
+.pattern-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }

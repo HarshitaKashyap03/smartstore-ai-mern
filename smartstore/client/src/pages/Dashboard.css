@@ -1,0 +1,21 @@
+.dashboard { display: flex; flex-direction: column; gap: 0; }
+.kpi-icon { position: absolute; top: 16px; right: 16px; font-size: 22px; opacity: 0.4; }
+.text-muted { color: var(--text-muted); }
+.mt-20 { margin-top: 20px; }
+
+.chart-tooltip {
+  background: var(--bg-card); border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+}
+.ct-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+.ct-value { font-size: 15px; font-weight: 700; color: var(--accent-blue); }
+
+.alert-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.alert-content { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+.alert-msg { font-size: 13px; color: var(--text-secondary); flex: 1; }
+.alert-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }

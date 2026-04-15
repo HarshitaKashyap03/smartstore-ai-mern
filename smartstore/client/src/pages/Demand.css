@@ -1,0 +1,23 @@
+.predict-bar-wrap { display: flex; align-items: center; gap: 10px; }
+.predict-bar { height: 18px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); border-radius: 4px; min-width: 4px; transition: width 0.6s ease; }
+.predict-val { font-size: 12px; font-weight: 600; color: var(--accent-blue); flex-shrink: 0; }
+.seasonal-tag { font-size: 12px; color: var(--accent-amber); font-weight: 500; }
+
+.seasonal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seasonal-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+}
+.seasonal-icon { font-size: 24px; margin-bottom: 6px; }
+.seasonal-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.seasonal-change { font-size: 13px; font-weight: 600; }
+
+.restock-list { display: flex; flex-direction: column; gap: 10px; }
+.restock-rec-row { display: flex; align-items: flex-start; gap: 10px; }
+.rr-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-blue); margin-top: 6px; flex-shrink: 0; }
+.rr-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.text-urgent { color: var(--accent-blue); font-weight: 600; }
+.text-normal  { color: var(--text-secondary); font-weight: 500; }
