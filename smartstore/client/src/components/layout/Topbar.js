@@ -42,10 +42,7 @@ export default function Topbar({ alertCount = 0 }) {
         <span className="topbar-title">{title}</span>
       </div>
       <div className="topbar-center">
-        <div className="search-box">
-          <span className="search-icon">🔍</span>
-          <input placeholder="Global Search..." className="search-input" readOnly />
-        </div>
+        
       </div>
       <div className="topbar-right">
         <button className="btn btn-outline btn-sm" onClick={handleExport}>
