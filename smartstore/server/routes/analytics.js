@@ -22,7 +22,8 @@ router.get('/kpi', auth, async (req, res) => {
     const yestRevenue = yestSales.reduce((s, sale) => s + sale.total, 0);
     const yestOrders = yestSales.length;
 
-    const lowStockCount = await Product.countDocuments({ status: 'Low' });
+    const allProducts = await Product.find({});
+    const lowStockCount = allProducts.filter(p => p.stock <= p.minStock).length;
     const topProduct = await getTopProduct();
 
     const revenueChange = yestRevenue > 0 ? (((totalRevenue - yestRevenue) / yestRevenue) * 100).toFixed(1) : 0;
