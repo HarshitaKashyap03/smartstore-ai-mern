@@ -32,7 +32,7 @@ export default function Inventory() {
   const loadPredictions = async () => {
     try {
       const { data } = await api.get('/predict');
-      setPredictions(data.slice(0, 2));
+      setPredictions(data);
     } catch {}
   };
 
@@ -125,25 +125,53 @@ export default function Inventory() {
         )}
       </div>
 
-      {/* Restock Suggestions */}
-      {predictions.length > 0 && (
-        <div className="grid-2">
-          {predictions.map(p => (
-            <div key={p._id} className="card restock-card">
-              <div className="section-title">Restock Suggestion Panel</div>
-              <div className="restock-sub">Prioritized Items based on AI Predictions.</div>
-              <div className="restock-item">
-                <div className="product-thumb">{p.name[0]}</div>
-                <div className="restock-info">
-                  <div className="restock-name">Restock {p.name}</div>
-                  <div className="restock-qty">Recommended Qty +{p.restockQty}</div>
+      {/* Restock Suggestions — only show products that are actually Low or Out of Stock */}
+      {(() => {
+        // Cross-reference predictions with actual product stock status
+        // Only include products whose current stock is at or below minStock
+        const needRestock = products
+          .filter(p => p.status === 'Low' || p.status === 'Out of Stock')
+          .map(p => {
+            // Find matching prediction for smart qty suggestion
+            const pred = predictions.find(pr => pr._id === p._id);
+            // Restock qty = predicted 30-day demand - current stock + safety buffer (10)
+            // Minimum restock of 1 so we never show +0
+            const suggestedQty = pred
+              ? Math.max(1, pred.predicted30Days - p.stock + 10)
+              : Math.max(1, p.minStock * 2 - p.stock);
+            return { ...p, suggestedQty };
+          });
+
+        if (needRestock.length === 0) return null;
+
+        return (
+          <div className="grid-2 mt-20">
+            {needRestock.slice(0, 4).map(p => (
+              <div key={p._id} className="card restock-card">
+                <div className="section-title">Restock Suggestion Panel</div>
+                <div className="restock-sub">Prioritized Items based on AI Predictions.</div>
+                <div className="restock-item">
+                  <div className={`product-thumb ${p.status === 'Out of Stock' ? 'thumb-red' : 'thumb-amber'}`}>
+                    {p.name[0]}
+                  </div>
+                  <div className="restock-info">
+                    <div className="restock-name">Restock {p.name}</div>
+                    <div className="restock-qty">
+                      Recommended Qty +{p.suggestedQty}
+                      <span className={`restock-status-badge ${p.status === 'Out of Stock' ? 'badge-red' : 'badge-amber'}`}>
+                        {p.status}
+                      </span>
+                    </div>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => openEdit(p)}>
+                    Restock Now
+                  </button>
                 </div>
-                <button className="btn btn-primary btn-sm">Restock Now</button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Modal */}
       {showModal && (
