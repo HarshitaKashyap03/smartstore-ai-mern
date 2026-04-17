@@ -69,3 +69,30 @@
   .billing-layout { grid-template-columns: 1fr; height: auto; }
   .products-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Out of stock states ───────────────────────── */
+.product-tile.out-of-stock {
+  opacity: 0.55;
+  border-color: rgba(239,68,68,0.2);
+  background: rgba(239,68,68,0.04);
+}
+.product-tile.out-of-stock:hover { border-color: rgba(239,68,68,0.35); }
+.oos-thumb {
+  background: rgba(239,68,68,0.15) !important;
+  color: var(--accent-red) !important;
+}
+.oos-text { color: var(--accent-red) !important; font-weight: 600; }
+.in-cart-badge { color: var(--accent-cyan); font-weight: 600; }
+
+/* Disabled + button when at stock limit */
+.btn-disabled {
+  background: rgba(100,116,139,0.15) !important;
+  color: var(--text-muted) !important;
+  cursor: not-allowed !important;
+  border: 1px solid rgba(100,116,139,0.15) !important;
+}
+
+/* Cart row when qty exceeds stock */
+.cart-row-error td { background: rgba(239,68,68,0.06); }
+.cart-stock-warn { font-size: 10px; color: var(--accent-red); font-weight: 600; margin-top: 2px; }
+.qty-over { color: var(--accent-red); font-weight: 700; }

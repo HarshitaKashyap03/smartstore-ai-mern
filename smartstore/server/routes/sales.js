@@ -58,23 +58,52 @@ router.get('/top-products', auth, async (req, res) => {
   }
 });
 
-// POST create sale
+// POST create sale — with stock validation BEFORE creating the sale
 router.post('/', auth, async (req, res) => {
   try {
     const { items, subtotal, tax, discount, total } = req.body;
+
+    // ── STOCK VALIDATION ──────────────────────────────────────────────
+    // Check every item before touching the database
+    for (const item of items) {
+      const product = await Product.findById(item.product);
+
+      if (!product) {
+        return res.status(400).json({
+          message: `Product not found: ${item.name}`
+        });
+      }
+
+      if (product.stock === 0) {
+        return res.status(400).json({
+          message: `"${product.name}" is out of stock (0 units available)`
+        });
+      }
+
+      if (product.stock < item.qty) {
+        return res.status(400).json({
+          message: `"${product.name}" only has ${product.stock} unit(s) in stock, but you requested ${item.qty}`
+        });
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────
+
+    // All items passed validation — create the sale
     const sale = await Sale.create({
       items, subtotal, tax, discount, total,
       cashier: req.user.id,
       cashierName: req.user.name
     });
-    // Update stock for each item
+
+    // Deduct stock for each item
     for (const item of items) {
       const product = await Product.findById(item.product);
       if (product) {
-        product.stock = Math.max(0, product.stock - item.qty);
+        product.stock = product.stock - item.qty; // safe — already validated above
         product.lastSoldAt = new Date();
-        await product.save();
-        // Low stock alert
+        await product.save(); // pre('save') recalculates status automatically
+
+        // Fire low stock alert if needed
         if (product.stock <= product.minStock) {
           const exists = await Alert.findOne({ product: product._id, type: 'Low Stock', status: 'PENDING' });
           if (!exists) {
@@ -88,6 +117,7 @@ router.post('/', auth, async (req, res) => {
         }
       }
     }
+
     req.io?.emit('new_sale', sale);
     res.status(201).json(sale);
   } catch (err) {
