@@ -9,6 +9,7 @@ export default function Admin() {
   const [store,    setStore]    = useState({ name:'SmartStore Tech', currency:'USD ($)', timezone:'UTC+5:30', taxRate:'8.5' });
   const [loading,  setLoading]  = useState(true);
   const [backupOk, setBackupOk] = useState(true);
+  const [adminSearch, setAdminSearch] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -59,18 +60,25 @@ export default function Admin() {
         <div className="card">
           <div className="section-title mb-12">Product & Inventory (Advanced Controls)</div>
           <div className="flex gap-8 mb-12">
-            <input className="form-control flex-1" placeholder="🔍 Search" />
+            <input className="form-control flex-1" placeholder="🔍 Search" value={adminSearch} onChange={e => setAdminSearch(e.target.value)} />
             <button className="btn btn-primary btn-sm" onClick={() => window.location.href='/inventory'}>
               Add New Product (+)
             </button>
           </div>
           <div className="flex gap-6 mb-12 flex-wrap">
-            {['Electronics','Wearables','Electronics','All'].map((c, i) => (
-              <span key={i} className="badge badge-blue" style={{ cursor:'pointer' }}>{c}</span>
+            {['All', ...new Set(products.map(p => p.category))].map((c) => (
+              <span
+                key={c}
+                className={`badge ${adminSearch === c || (c === 'All' && !adminSearch) ? 'badge-purple' : 'badge-blue'}`}
+                style={{ cursor:'pointer' }}
+                onClick={() => setAdminSearch(c === 'All' ? '' : c)}
+              >{c}</span>
             ))}
           </div>
           <div className="admin-product-list">
-            {products.slice(0,6).map(p => (
+            {products
+              .filter(p => !adminSearch || p.name.toLowerCase().includes(adminSearch.toLowerCase()) || p.sku.toLowerCase().includes(adminSearch.toLowerCase()) || p.category.toLowerCase().includes(adminSearch.toLowerCase()))
+              .map(p => (
               <div key={p._id} className="admin-product-row">
                 <div className="product-thumb" style={{ width:28, height:28 }}>{p.name[0]}</div>
                 <span className="admin-pname">{p.name}</span>
