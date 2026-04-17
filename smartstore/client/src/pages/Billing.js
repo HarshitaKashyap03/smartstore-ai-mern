@@ -10,7 +10,8 @@ export default function Billing() {
   const [history,    setHistory]    = useState([]);
   const [search,     setSearch]     = useState('');
   const [filterTab,  setFilterTab]  = useState('All');
-  const [processing, setProcessing] = useState(false);
+  const [processing,   setProcessing]   = useState(false);
+  const [receipt,      setReceipt]      = useState(null);  // sale object to show in modal
 
   const loadData = async () => {
     try {
@@ -143,6 +144,7 @@ export default function Billing() {
   });
 
   return (
+    <>
     <div className="billing-layout">
       {/* Left: Product Selection */}
       <div className="billing-left">
@@ -226,7 +228,7 @@ export default function Billing() {
                   <td style={{ fontSize:12 }}>{sale.cashierName}</td>
                   <td>{sale.items?.length || 0}</td>
                   <td><strong style={{ color:'var(--accent-green)' }}>${sale.total?.toFixed(2)}</strong></td>
-                  <td><button className="btn btn-outline btn-sm">VIEW RECEIPT</button></td>
+                  <td><button className="btn btn-outline btn-sm" onClick={() => setReceipt(sale)}>VIEW RECEIPT</button></td>
                 </tr>
               ))}
               {history.length === 0 && (
@@ -322,5 +324,97 @@ export default function Billing() {
         </div>
       </div>
     </div>
+
+      {/* Receipt Modal */}
+      {receipt && (
+        <div className="modal-overlay" onClick={() => setReceipt(null)}>
+          <div className="modal receipt-modal" onClick={e => e.stopPropagation()}>
+            <div className="receipt-header">
+              <div className="receipt-brand">
+                <div className="receipt-logo">S</div>
+                <div>
+                  <div className="receipt-store">SmartStore AI</div>
+                  <div className="receipt-tagline">Intelligence at your storefront</div>
+                </div>
+              </div>
+              <button className="btn btn-ghost btn-sm" onClick={() => setReceipt(null)}>✕ Close</button>
+            </div>
+
+            <div className="receipt-meta">
+              <div className="receipt-meta-row">
+                <span>Receipt #</span>
+                <span className="receipt-mono">{receipt.receiptNumber}</span>
+              </div>
+              <div className="receipt-meta-row">
+                <span>Date & Time</span>
+                <span>{new Date(receipt.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="receipt-meta-row">
+                <span>Cashier</span>
+                <span>{receipt.cashierName}</span>
+              </div>
+              <div className="receipt-meta-row">
+                <span>Status</span>
+                <span className="badge badge-green">RESOLVED</span>
+              </div>
+            </div>
+
+            <div className="receipt-items-title">Items Purchased</div>
+            <table className="table receipt-table">
+              <thead>
+                <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+              </thead>
+              <tbody>
+                {receipt.items?.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.name}</td>
+                    <td>{item.qty}</td>
+                    <td>${item.unitPrice?.toFixed(2)}</td>
+                    <td><strong>${(item.unitPrice * item.qty).toFixed(2)}</strong></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="receipt-totals">
+              <div className="receipt-total-row"><span>Subtotal</span><span>${receipt.subtotal?.toFixed(2)}</span></div>
+              <div className="receipt-total-row"><span>Tax (8%)</span><span>${receipt.tax?.toFixed(2)}</span></div>
+              {receipt.discount > 0 && (
+                <div className="receipt-total-row discount"><span>Discount</span><span>-${receipt.discount?.toFixed(2)}</span></div>
+              )}
+              <div className="receipt-total-row grand-total"><span>TOTAL</span><strong>${receipt.total?.toFixed(2)}</strong></div>
+            </div>
+
+            <button
+              className="btn btn-primary w-full"
+              style={{ marginTop: 20, justifyContent: 'center' }}
+              onClick={() => {
+                const lines = [
+                  'SmartStore AI — Receipt',
+                  `Receipt #: ${receipt.receiptNumber}`,
+                  `Date: ${new Date(receipt.createdAt).toLocaleString()}`,
+                  `Cashier: ${receipt.cashierName}`,
+                  '---',
+                  ...receipt.items.map(i => `${i.name} x${i.qty}  $${(i.unitPrice * i.qty).toFixed(2)}`),
+                  '---',
+                  `Subtotal: $${receipt.subtotal?.toFixed(2)}`,
+                  `Tax (8%): $${receipt.tax?.toFixed(2)}`,
+                  receipt.discount > 0 ? `Discount: -$${receipt.discount?.toFixed(2)}` : '',
+                  `TOTAL: $${receipt.total?.toFixed(2)}`,
+                ].filter(Boolean).join('\n');
+                const blob = new Blob([lines], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `receipt_${receipt.receiptNumber}.txt`;
+                a.click();
+              }}
+            >
+              ↓ Download Receipt
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

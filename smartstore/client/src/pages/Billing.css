@@ -96,3 +96,69 @@
 .cart-row-error td { background: rgba(239,68,68,0.06); }
 .cart-stock-warn { font-size: 10px; color: var(--accent-red); font-weight: 600; margin-top: 2px; }
 .qty-over { color: var(--accent-red); font-weight: 700; }
+
+/* ── Receipt Modal ─────────────────────────────── */
+.receipt-modal {
+  max-width: 480px;
+  width: 95%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.receipt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.receipt-brand { display: flex; align-items: center; gap: 10px; }
+.receipt-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px; color: #fff;
+}
+.receipt-store   { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.receipt-tagline { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+.receipt-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.receipt-meta-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: var(--text-secondary);
+}
+.receipt-mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); }
+
+.receipt-items-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.receipt-table { margin-bottom: 0; }
+.receipt-table th { font-size: 10px; }
+.receipt-table td { font-size: 13px; }
+
+.receipt-totals {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 4px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.receipt-total-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--text-secondary);
+}
+.receipt-total-row.discount { color: var(--accent-green); }
+.receipt-total-row.grand-total {
+  font-size: 16px; font-weight: 700;
+  color: var(--text-primary);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
