@@ -1,4 +1,3 @@
-.alerts-filters { }
 .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .filter-tab {
   padding: 5px 12px; border-radius: 999px;
@@ -20,7 +19,14 @@
   transition: var(--transition);
 }
 .alert-card:hover { border-color: rgba(59,130,246,0.2); }
-.alert-card.resolved { opacity: 0.6; }
+.alert-card.resolved {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.22);
+}
+
+.alert-card.resolved .alert-card-left {
+  opacity: 0.78;
+}
 
 .alert-card-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; }
 .alert-type-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
@@ -39,3 +45,18 @@
 
 .alert-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
 .alert-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+.btn-reopen {
+  color: #e6f1ff;
+  border-color: rgba(147, 197, 253, 0.95);
+  background: rgba(59, 130, 246, 0.34);
+  box-shadow: 0 0 0 1px rgba(147, 197, 253, 0.28) inset, 0 0 10px rgba(59, 130, 246, 0.28);
+}
+
+.btn-reopen:hover {
+  color: #dbeafe;
+  border-color: rgba(147, 197, 253, 0.95);
+  background: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px);
+}

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import './Topbar.css';
@@ -20,6 +20,7 @@ const PAGE_TITLES = {
 export default function Topbar({ alertCount = 0 }) {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const title = PAGE_TITLES[location.pathname] || 'SmartStore AI';
 
   const handleExport = async () => {
@@ -29,6 +30,10 @@ export default function Topbar({ alertCount = 0 }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'smartstore_export.csv'; a.click();
+  };
+
+  const handleNotificationClick = () => {
+    navigate('/alerts');
   };
 
   return (
@@ -48,10 +53,16 @@ export default function Topbar({ alertCount = 0 }) {
         <button className="btn btn-outline btn-sm" onClick={handleExport}>
           ↓ Data Export
         </button>
-        <div className="notif-btn">
+        <button
+          type="button"
+          className="notif-btn"
+          onClick={handleNotificationClick}
+          aria-label="Open alerts page"
+          title="Open alerts"
+        >
           <span>🔔</span>
           {alertCount > 0 && <span className="notif-badge">{alertCount}</span>}
-        </div>
+        </button>
         <div className="user-chip">
           <div className="user-chip-avatar">{user?.name?.[0]}</div>
           <span>{user?.role}</span>

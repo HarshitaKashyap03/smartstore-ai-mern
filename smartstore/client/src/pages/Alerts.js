@@ -15,19 +15,29 @@ export default function Alerts() {
   const [alerts,   setAlerts]   = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [filter,   setFilter]   = useState('All');
+  const [status,   setStatus]   = useState('All');
   const [search,   setSearch]   = useState('');
 
   const load = async () => {
     try {
       const params = {};
       if (filter !== 'All') params.type = filter;
+      if (status !== 'All') params.status = status;
       const { data } = await api.get('/alerts', { params });
       setAlerts(data);
     } catch(e) { toast.error('Failed to load alerts'); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [filter]);
+  useEffect(() => { load(); }, [filter, status]);
+
+  const handleReview = async (id) => {
+    try {
+      await api.patch(`/alerts/${id}/review`);
+      toast.success('Alert moved to review');
+      load();
+    } catch { toast.error('Failed to move to review'); }
+  };
 
   const handleResolve = async (id) => {
     try {
@@ -35,6 +45,30 @@ export default function Alerts() {
       toast.success('Alert resolved');
       load();
     } catch { toast.error('Failed to resolve'); }
+  };
+
+  const handleReopen = async (id) => {
+    try {
+      await api.patch(`/alerts/${id}/reopen`);
+      toast.success('Alert reopened to pending');
+      load();
+    } catch { toast.error('Failed to reopen alert'); }
+  };
+
+  const handleResolveAllPending = async () => {
+    try {
+      await api.patch('/alerts/resolve-all/pending');
+      toast.success('All pending alerts resolved');
+      load();
+    } catch { toast.error('Failed to resolve all pending alerts'); }
+  };
+
+  const handleClearResolved = async () => {
+    try {
+      await api.delete('/alerts/clear/resolved');
+      toast.success('Resolved alerts cleared');
+      load();
+    } catch { toast.error('Failed to clear resolved alerts'); }
   };
 
   const handleDelete = async (id) => {
@@ -56,6 +90,8 @@ export default function Alerts() {
       <div className="flex-between mb-16">
         <div className="section-title">System Alerts & Notifications Feed</div>
         <div className="flex gap-8">
+          <button className="btn btn-outline btn-sm" onClick={handleResolveAllPending}>Resolve All Pending</button>
+          <button className="btn btn-outline btn-sm" onClick={handleClearResolved}>Clear Resolved</button>
           <input className="form-control" style={{ width: 180 }} placeholder="🔍 Search" value={search} onChange={e => setSearch(e.target.value)} />
           <button className="btn btn-outline btn-sm">↓ Export Alerts</button>
         </div>
@@ -68,6 +104,14 @@ export default function Alerts() {
           <div className="filter-tabs">
             {types.map(t => (
               <button key={t} className={`filter-tab ${filter===t?'active':''}`} onClick={() => setFilter(t)}>{t}</button>
+            ))}
+          </div>
+        </div>
+        <div className="form-group" style={{ margin:0 }}>
+          <label className="form-label" style={{ marginBottom:4 }}>Filter by Status</label>
+          <div className="filter-tabs">
+            {['All', 'PENDING', 'REVIEW', 'RESOLVED'].map(s => (
+              <button key={s} className={`filter-tab ${status===s?'active':''}`} onClick={() => setStatus(s)}>{s}</button>
             ))}
           </div>
         </div>
@@ -109,6 +153,12 @@ export default function Alerts() {
                   </span>
                   <div className="alert-time">{new Date(alert.createdAt).toLocaleString()}</div>
                   <div className="flex gap-8">
+                    {alert.status === 'PENDING' && (
+                      <button className="btn btn-outline btn-sm" onClick={() => handleReview(alert._id)}>Review</button>
+                    )}
+                    {alert.status === 'RESOLVED' && (
+                      <button className="btn btn-outline btn-sm btn-reopen" onClick={() => handleReopen(alert._id)}>Reopen</button>
+                    )}
                     {alert.status !== 'RESOLVED' && (
                       <button className="btn btn-primary btn-sm" onClick={() => handleResolve(alert._id)}>Resolve</button>
                     )}
