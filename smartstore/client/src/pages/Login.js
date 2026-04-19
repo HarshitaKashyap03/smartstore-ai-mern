@@ -17,19 +17,28 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!role) { toast.error('Please select a role'); return; }
-    let result;
+
     if (tab === 'login') {
-      result = await login(email, password, role);
+      // Login: role selection is required to verify the user is logging in as correct role
+      if (!role) { toast.error('Please select your role'); return; }
+      const result = await login(email, password, role);
+      if (result.ok) {
+        toast.success('Authenticated successfully!');
+        navigate('/');
+      } else {
+        toast.error(result.message);
+      }
     } else {
+      // Register: no role selection — server assigns role automatically
       if (!name.trim()) { toast.error('Name is required'); return; }
-      result = await register(name, email, password, role);
-    }
-    if (result.ok) {
-      toast.success('Authenticated successfully!');
-      navigate('/');
-    } else {
-      toast.error(result.message);
+      if (password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+      const result = await register(name, email, password);
+      if (result.ok) {
+        toast.success(result.message || 'Account created!');
+        navigate('/');
+      } else {
+        toast.error(result.message);
+      }
     }
   };
 
@@ -56,35 +65,69 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Role Selection</label>
-            <div className="role-select-wrap">
-              <select className="form-control" value={role} onChange={e => setRole(e.target.value)}>
-                <option value="">Select Role</option>
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="Staff">Staff</option>
-              </select>
-            </div>
-          </div>
 
-          {tab === 'register' && (
+          {/* Role dropdown — only shown on LOGIN tab */}
+          {tab === 'login' && (
             <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input className="form-control" placeholder="Your name" value={name} onChange={e => setName(e.target.value)} required />
+              <label className="form-label">Role Selection</label>
+              <div className="role-select-wrap">
+                <select className="form-control" value={role} onChange={e => setRole(e.target.value)}>
+                  <option value="">Select Role</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Staff">Staff</option>
+                </select>
+              </div>
             </div>
+          )}
+
+          {/* Name — only on register tab */}
+          {tab === 'register' && (
+            <>
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  className="form-control"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+              </div>
+              {/* Security notice on register tab */}
+              <div className="register-notice">
+                🔒 New accounts are created as <strong>Staff</strong> by default.
+                Only an Admin can assign Manager or Admin roles from the Admin Panel.
+              </div>
+            </>
           )}
 
           <div className="form-group">
             <label className="form-label">Email Address</label>
-            <input className="form-control" type="email" placeholder="email@smartstore.io" value={email} onChange={e => setEmail(e.target.value)} required />
+            <input
+              className="form-control"
+              type="email"
+              placeholder="email@smartstore.io"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
           </div>
 
           <div className="form-group">
             <label className="form-label">Password</label>
             <div className="pw-wrap">
-              <input className="form-control" type={showPw ? 'text' : 'password'} placeholder="••••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
-              <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)}>{showPw ? '🙈' : '👁'}</button>
+              <input
+                className="form-control"
+                type={showPw ? 'text' : 'password'}
+                placeholder="••••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+              <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)}>
+                {showPw ? '🙈' : '👁'}
+              </button>
             </div>
           </div>
 
@@ -99,15 +142,9 @@ export default function Login() {
           )}
 
           <button className="btn btn-primary w-full login-btn" type="submit" disabled={loading}>
-            {loading ? '...' : `⚡ Sign In`}
+            {loading ? '...' : tab === 'login' ? '⚡ Sign In' : '✦ Create Account'}
           </button>
         </form>
-
-        <div className="demo-creds">
-          <div className="demo-title">Demo Credentials</div>
-          <div className="demo-row"><span className="badge badge-purple">Admin</span><code>admin@smartstore.io / admin123</code></div>
-          <div className="demo-row"><span className="badge badge-blue">Manager</span><code>manager@smartstore.io / manager123</code></div>
-        </div>
       </div>
     </div>
   );

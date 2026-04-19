@@ -4,12 +4,13 @@ import toast from 'react-hot-toast';
 import './Admin.css';
 
 export default function Admin() {
-  const [products, setProducts] = useState([]);
-  const [users,    setUsers]    = useState([]);
-  const [store,    setStore]    = useState({ name:'SmartStore Tech', currency:'USD ($)', timezone:'UTC+5:30', taxRate:'8.5' });
-  const [loading,  setLoading]  = useState(true);
-  const [backupOk, setBackupOk] = useState(true);
+  const [products,    setProducts]    = useState([]);
+  const [users,       setUsers]       = useState([]);
+  const [store,       setStore]       = useState({ name:'SmartStore Tech', currency:'USD ($)', timezone:'UTC+5:30', taxRate:'8.5' });
+  const [loading,     setLoading]     = useState(true);
+  const [backupOk,    setBackupOk]    = useState(true);
   const [adminSearch, setAdminSearch] = useState('');
+  const [roleModal,   setRoleModal]   = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -35,12 +36,21 @@ export default function Admin() {
     } catch { toast.error('Failed'); }
   };
 
+  const handleChangeRole = async (userId, newRole) => {
+    try {
+      const { data } = await api.put(`/auth/users/${userId}/role`, { role: newRole });
+      toast.success(data.message);
+      setUsers(prev => prev.map(u => u._id === userId ? { ...u, role: newRole } : u));
+      setRoleModal(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to change role');
+    }
+  };
+
   const handleApplySettings = () => toast.success('Settings saved!');
 
   const exportAll = () => {
-    const rows = products.map(p =>
-      `${p.name},${p.sku},${p.category},${p.stock},${p.price}`
-    );
+    const rows = products.map(p => `${p.name},${p.sku},${p.category},${p.stock},${p.price}`);
     const csv = ['Name,SKU,Category,Stock,Price', ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -60,7 +70,12 @@ export default function Admin() {
         <div className="card">
           <div className="section-title mb-12">Product & Inventory (Advanced Controls)</div>
           <div className="flex gap-8 mb-12">
-            <input className="form-control flex-1" placeholder="🔍 Search" value={adminSearch} onChange={e => setAdminSearch(e.target.value)} />
+            <input
+              className="form-control flex-1"
+              placeholder="🔍 Search"
+              value={adminSearch}
+              onChange={e => setAdminSearch(e.target.value)}
+            />
             <button className="btn btn-primary btn-sm" onClick={() => window.location.href='/inventory'}>
               Add New Product (+)
             </button>
@@ -77,17 +92,22 @@ export default function Admin() {
           </div>
           <div className="admin-product-list">
             {products
-              .filter(p => !adminSearch || p.name.toLowerCase().includes(adminSearch.toLowerCase()) || p.sku.toLowerCase().includes(adminSearch.toLowerCase()) || p.category.toLowerCase().includes(adminSearch.toLowerCase()))
+              .filter(p => !adminSearch ||
+                p.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
+                p.sku.toLowerCase().includes(adminSearch.toLowerCase()) ||
+                p.category.toLowerCase().includes(adminSearch.toLowerCase())
+              )
               .map(p => (
-              <div key={p._id} className="admin-product-row">
-                <div className="product-thumb" style={{ width:28, height:28 }}>{p.name[0]}</div>
-                <span className="admin-pname">{p.name}</span>
-                <div className="admin-actions">
-                  <button className="btn btn-primary btn-sm" onClick={() => window.location.href='/inventory'}>Edit Details</button>
-                  <button className="btn btn-outline btn-sm" onClick={() => window.location.href='/pnl'}>View P&L</button>
+                <div key={p._id} className="admin-product-row">
+                  <div className="product-thumb" style={{ width:28, height:28 }}>{p.name[0]}</div>
+                  <span className="admin-pname">{p.name}</span>
+                  <div className="admin-actions">
+                    <button className="btn btn-primary btn-sm" onClick={() => window.location.href='/inventory'}>Edit Details</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => window.location.href='/pnl'}>View P&L</button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
 
@@ -95,7 +115,9 @@ export default function Admin() {
         <div className="card">
           <div className="section-title mb-12">User Management (Staff Access)</div>
           <table className="table" style={{ fontSize:12 }}>
-            <thead><tr><th>Staff Name</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead>
+              <tr><th>Staff Name</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+            </thead>
             <tbody>
               {users.map(u => (
                 <tr key={u._id}>
@@ -106,10 +128,14 @@ export default function Admin() {
                     </div>
                   </td>
                   <td>{u.role}</td>
-                  <td><span className={`badge ${u.status==='ACTIVE'?'badge-green':'badge-amber'}`}>{u.status||'ACTIVE'}</span></td>
+                  <td>
+                    <span className={`badge ${u.status === 'ACTIVE' ? 'badge-green' : 'badge-amber'}`}>
+                      {u.status || 'ACTIVE'}
+                    </span>
+                  </td>
                   <td>
                     <div className="flex gap-6">
-                      <button className="btn btn-outline btn-sm">Edit User</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => setRoleModal(u)}>Change Role</button>
                       <button className="btn btn-danger btn-sm" onClick={() => handleDeleteUser(u._id)}>Delete</button>
                     </div>
                   </td>
@@ -150,7 +176,7 @@ export default function Admin() {
           </div>
           <div className="system-status-row">
             <span className="status-label">Backup Status:</span>
-            <span className={`badge ${backupOk?'badge-green':'badge-red'}`}>{backupOk?'(OK)':'(FAILED)'}</span>
+            <span className={`badge ${backupOk ? 'badge-green' : 'badge-red'}`}>{backupOk ? '(OK)' : '(FAILED)'}</span>
           </div>
           <div className="system-status-row">
             <span className="status-label">Logs:</span>
@@ -167,6 +193,36 @@ export default function Admin() {
           </div>
         </div>
       </div>
+
+      {/* Change Role Modal — inside the return div, not outside it */}
+      {roleModal && (
+        <div className="modal-overlay" onClick={() => setRoleModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">Change Role — {roleModal.name}</div>
+            <p style={{ fontSize:13, color:'var(--text-secondary)', marginBottom:16 }}>
+              Current role: <strong style={{ color:'var(--accent-blue)' }}>{roleModal.role}</strong>
+            </p>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {['Admin','Manager','Staff'].map(r => (
+                <button
+                  key={r}
+                  className={`btn w-full ${roleModal.role === r ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ justifyContent:'center' }}
+                  onClick={() => handleChangeRole(roleModal._id, r)}
+                  disabled={roleModal.role === r}
+                >
+                  {r === 'Admin'   ? '👑 ' : r === 'Manager' ? '🔧 ' : '👤 '}
+                  {r}
+                  {roleModal.role === r ? ' (current)' : ''}
+                </button>
+              ))}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setRoleModal(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
