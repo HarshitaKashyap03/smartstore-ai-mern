@@ -27,6 +27,7 @@ app.use('/api/predict',    require('./routes/predict'));
 app.use('/api/billing',    require('./routes/billing'));
 app.use('/api/alerts',     require('./routes/alerts'));
 app.use('/api/analytics',  require('./routes/analytics'));
+app.use('/api/settings',   require('./routes/settings'));
 
 // Socket.io
 io.on('connection', (socket) => {

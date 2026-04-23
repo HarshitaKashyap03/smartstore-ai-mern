@@ -15,12 +15,19 @@ export default function Admin() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [prodR, userR] = await Promise.all([
+        const [prodR, userR, storeR] = await Promise.all([
           api.get('/products'),
           api.get('/auth/users'),
+          api.get('/settings/store'),
         ]);
         setProducts(prodR.data);
         setUsers(userR.data);
+        setStore({
+          name: storeR.data.name || 'SmartStore Tech',
+          currency: storeR.data.currency || 'USD ($)',
+          timezone: storeR.data.timezone || 'UTC+5:30',
+          taxRate: String(storeR.data.taxRate ?? '8.5')
+        });
       } catch(e) { console.error(e); }
       finally { setLoading(false); }
     };
@@ -47,7 +54,26 @@ export default function Admin() {
     }
   };
 
-  const handleApplySettings = () => toast.success('Settings saved!');
+  const handleApplySettings = async () => {
+    try {
+      const { data } = await api.put('/settings/store', {
+        name: store.name,
+        currency: store.currency,
+        timezone: store.timezone,
+        taxRate: Number(store.taxRate)
+      });
+
+      setStore({
+        name: data.settings.name,
+        currency: data.settings.currency,
+        timezone: data.settings.timezone,
+        taxRate: String(data.settings.taxRate)
+      });
+      toast.success('Settings saved!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save settings');
+    }
+  };
 
   const exportAll = () => {
     const rows = products.map(p => `${p.name},${p.sku},${p.category},${p.stock},${p.price}`);
@@ -178,10 +204,7 @@ export default function Admin() {
             <span className="status-label">Backup Status:</span>
             <span className={`badge ${backupOk ? 'badge-green' : 'badge-red'}`}>{backupOk ? '(OK)' : '(FAILED)'}</span>
           </div>
-          <div className="system-status-row">
-            <span className="status-label">Logs:</span>
-            <button className="btn btn-outline btn-sm">View Activity Log</button>
-          </div>
+          
           <div className="system-status-row">
             <span className="status-label">Data Export Status:</span>
             <span className="badge badge-blue">Ready</span>
@@ -189,7 +212,6 @@ export default function Admin() {
           <div className="admin-stats mt-16">
             <div className="admin-stat"><div className="ast-val">{products.length}</div><div className="ast-lbl">Products</div></div>
             <div className="admin-stat"><div className="ast-val">{users.length}</div><div className="ast-lbl">Users</div></div>
-            <div className="admin-stat"><div className="ast-val">99%</div><div className="ast-lbl">Uptime</div></div>
           </div>
         </div>
       </div>
