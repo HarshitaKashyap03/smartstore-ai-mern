@@ -295,10 +295,7 @@ export default function Topbar() {
       </div>
 
       <div className="topbar-center">
-        <div className="search-box">
-          <span className="search-icon">🔍</span>
-          <input placeholder="Global Search..." className="search-input" readOnly />
-        </div>
+        
       </div>
 
       <div className="topbar-right">
