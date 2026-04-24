@@ -93,7 +93,7 @@ export default function Alerts() {
           <button className="btn btn-outline btn-sm" onClick={handleResolveAllPending}>Resolve All Pending</button>
           <button className="btn btn-outline btn-sm" onClick={handleClearResolved}>Clear Resolved</button>
           <input className="form-control" style={{ width: 180 }} placeholder="🔍 Search" value={search} onChange={e => setSearch(e.target.value)} />
-          <button className="btn btn-outline btn-sm">↓ Export Alerts</button>
+          
         </div>
       </div>
 

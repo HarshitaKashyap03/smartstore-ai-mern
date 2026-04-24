@@ -132,13 +132,15 @@ export default function Topbar() {
       else if (path === '/demand') {
         const { data } = await api.get('/predict');
         const csv = toCSV(
-          ['Product Name', 'Current Stock', 'Predicted 30 Days', 'Confidence %', 'Restock Qty'],
+          ['Product Name', 'Category', 'Current Stock', 'Predicted 30 Days', 'Stock Coverage (Days)', 'Restock Qty', 'Last Sold'],
           data.map(p => ({
-            'Product Name':      p.name,
-            'Current Stock':     p.currentStock,
-            'Predicted 30 Days': p.predicted30Days,
-            'Confidence %':      p.confidence,
-            'Restock Qty':       p.restockQty,
+            'Product Name':          p.name,
+            'Category':              p.category,
+            'Current Stock':         p.currentStock,
+            'Predicted 30 Days':     p.hasSalesData ? p.predicted30Days : 'No sales data',
+            'Stock Coverage (Days)': p.coverageDays !== null ? p.coverageDays : 'N/A',
+            'Restock Qty':           p.restockQty > 0 ? `+${p.restockQty}` : 'Not needed',
+            'Last Sold':             p.lastSoldAt ? new Date(p.lastSoldAt).toLocaleDateString() : 'Never',
           }))
         );
         downloadCSV(csv, 'demand_prediction_export.csv');

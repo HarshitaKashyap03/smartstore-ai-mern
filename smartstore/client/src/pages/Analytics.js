@@ -39,7 +39,7 @@ export default function Analytics() {
               <button key={p} className={`btn ${period===p?'btn-primary':'btn-ghost'} btn-sm`} onClick={() => setPeriod(p)}>{p}</button>
             ))}
           </div>
-          <button className="btn btn-outline btn-sm">↓ Export to CSV</button>
+          
         </div>
 
         <div className="section-title">Revenue Trends ({period.charAt(0)+period.slice(1).toLowerCase()})</div>

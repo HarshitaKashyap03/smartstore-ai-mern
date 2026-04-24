@@ -40,7 +40,7 @@ export default function Customers() {
       <div className="card mb-20">
         <div className="flex-between mb-16">
           <div className="section-title">Frequently Bought Together Heatmap</div>
-          <button className="btn btn-outline btn-sm">↓ Export to CSV</button>
+          
         </div>
         <div className="heatmap-wrap">
           <table className="heatmap-table">

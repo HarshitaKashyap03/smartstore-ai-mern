@@ -45,7 +45,7 @@ export default function Recommend() {
           <div className="section-title">Product Recommendation Builder (Active: Q4 2024)</div>
           <div className="flex gap-8">
             <span className="badge badge-blue">Suggestion: A → B, C</span>
-            <button className="btn btn-outline btn-sm">↓ Export to CSV</button>
+            
           </div>
         </div>
 
