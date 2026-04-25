@@ -9,7 +9,6 @@ import Inventory  from './pages/Inventory';
 import Analytics  from './pages/Analytics';
 import Demand     from './pages/Demand';
 import Customers  from './pages/Customers';
-import Recommend  from './pages/Recommend';
 import Alerts     from './pages/Alerts';
 import Billing    from './pages/Billing';
 import PnL        from './pages/PnL';
@@ -50,7 +49,6 @@ function AppRoutes() {
       <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
       <Route path="/demand"    element={<ProtectedRoute><AppLayout><Demand /></AppLayout></ProtectedRoute>} />
       <Route path="/customers" element={<ProtectedRoute><AppLayout><Customers /></AppLayout></ProtectedRoute>} />
-      <Route path="/recommend" element={<ProtectedRoute><AppLayout><Recommend /></AppLayout></ProtectedRoute>} />
       <Route path="/alerts"    element={<ProtectedRoute><AppLayout><Alerts /></AppLayout></ProtectedRoute>} />
       <Route path="/billing"   element={<ProtectedRoute><AppLayout><Billing /></AppLayout></ProtectedRoute>} />
       <Route path="/pnl"       element={<ProtectedRoute><AppLayout><PnL /></AppLayout></ProtectedRoute>} />

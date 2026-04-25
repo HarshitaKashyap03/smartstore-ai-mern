@@ -9,7 +9,6 @@ const navItems = [
   { path: '/analytics',  label: 'Sales Analytics',icon: '📊' },
   { path: '/demand',     label: 'Demand Predict', icon: '🧠' },
   { path: '/customers',  label: 'Customer Behavior',icon:'👥' },
-  { path: '/recommend',  label: 'Recommendations',icon: '🛒' },
   { path: '/alerts',     label: 'Alerts',         icon: '🔔' },
   { path: '/billing',    label: 'Smart Billing',  icon: '🧾' },
   { path: '/pnl',        label: 'Profit & Loss',  icon: '📈' },
