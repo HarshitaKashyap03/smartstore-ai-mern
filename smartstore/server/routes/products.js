@@ -38,13 +38,16 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// GET single product
+// GET single product — does NOT increment views
+// View tracking only happens on /products/:id/detail
 router.get('/:id', auth, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
-    product.totalViews += 1;
-    await product.save(); // pre('save') will also recompute status
+    // Recompute status live before returning
+    if (product.stock === 0) product.status = 'Out of Stock';
+    else if (product.stock <= product.minStock) product.status = 'Low';
+    else product.status = 'In Stock';
     res.json(product);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -102,6 +105,79 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// GET /api/products/:id/detail
+// Full product detail: product info + sales history + stats
+// Increments totalViews on each call
+router.get('/:id/detail', auth, async (req, res) => {
+  try {
+    const Sale = require('../models/Sale');
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Increment view count
+    product.totalViews += 1;
+    await product.save();
+
+    // Sales history for this product (last 30 days, day by day)
+    const salesHistory = [];
+    for (let i = 29; i >= 0; i--) {
+      const date  = new Date();
+      date.setDate(date.getDate() - i);
+      const start = new Date(new Date(date).setHours(0,0,0,0));
+      const end   = new Date(new Date(date).setHours(23,59,59,999));
+      const sales = await Sale.find({ createdAt: { $gte: start, $lte: end } });
+      const dayQty = sales.reduce((sum, s) => {
+        const item = s.items.find(it => it.product?.toString() === product._id.toString());
+        return sum + (item ? item.qty : 0);
+      }, 0);
+      const dayRev = sales.reduce((sum, s) => {
+        const item = s.items.find(it => it.product?.toString() === product._id.toString());
+        return sum + (item ? item.total : 0);
+      }, 0);
+      salesHistory.push({
+        date:    start.toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+        qty:     dayQty,
+        revenue: parseFloat(dayRev.toFixed(2)),
+      });
+    }
+
+    // All-time stats
+    const allSales = await Sale.find();
+    let totalUnitsSold = 0, totalRevenue = 0, totalTransactions = 0;
+    allSales.forEach(sale => {
+      const item = sale.items.find(it => it.product?.toString() === product._id.toString());
+      if (item) {
+        totalUnitsSold  += item.qty;
+        totalRevenue    += item.total;
+        totalTransactions += 1;
+      }
+    });
+
+    const profitPerUnit = product.price - (product.costPrice || 0);
+    const totalProfit   = parseFloat((profitPerUnit * totalUnitsSold).toFixed(2));
+    const marginPct     = product.price > 0 ? Math.round((profitPerUnit / product.price) * 100) : 0;
+
+    res.json({
+      product: {
+        ...product.toObject(),
+        status: product.stock === 0 ? 'Out of Stock' : product.stock <= product.minStock ? 'Low' : 'In Stock',
+      },
+      stats: {
+        totalUnitsSold,
+        totalRevenue:     parseFloat(totalRevenue.toFixed(2)),
+        totalTransactions,
+        totalProfit,
+        marginPct,
+        profitPerUnit:    parseFloat(profitPerUnit.toFixed(2)),
+      },
+      salesHistory,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

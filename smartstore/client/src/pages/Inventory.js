@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import './Inventory.css';
@@ -6,6 +7,7 @@ import './Inventory.css';
 const emptyForm = { name:'', sku:'', category:'', stock:0, minStock:10, price:0, costPrice:0 };
 
 export default function Inventory() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState('');
@@ -99,9 +101,9 @@ export default function Inventory() {
             <tbody>
               {products.map(p => (
                 <tr key={p._id}>
-                  <td><div className="product-name-cell">
+                  <td><div className="product-name-cell" style={{ cursor:'pointer' }} onClick={() => navigate(`/products/${p._id}`)}>
                     <div className="product-thumb">{p.name[0]}</div>
-                    <span>{p.name}</span>
+                    <span className="product-link">{p.name}</span>
                   </div></td>
                   <td><code style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.sku}</code></td>
                   <td>{p.category}</td>

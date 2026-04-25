@@ -2,27 +2,37 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import './Customers.css';
 
+const TREND_CONFIG = {
+  'up':       { label: '↑ Trending Up',   color: 'var(--accent-green)',  bg: 'rgba(16,185,129,0.1)'  },
+  'stable':   { label: '→ Stable',        color: 'var(--accent-blue)',   bg: 'rgba(59,130,246,0.1)'  },
+  'down':     { label: '↓ Slowing Down',  color: 'var(--accent-red)',    bg: 'rgba(239,68,68,0.1)'   },
+  'no-sales': { label: '— No Sales',      color: 'var(--text-muted)',    bg: 'rgba(100,116,139,0.08)' },
+};
+
 export default function Customers() {
-  const [heatmap,   setHeatmap]   = useState({ products: [], matrix: {} });
-  const [topViewed, setTopViewed] = useState([]);
-  const [patterns,  setPatterns]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [heatmap,      setHeatmap]      = useState({ products: [], matrix: {} });
+  const [topViewed,    setTopViewed]    = useState([]);
+  const [velocity,     setVelocity]     = useState([]);
+  const [revContrib,   setRevContrib]   = useState({ products: [], totalRevenue: 0 });
+  const [loading,      setLoading]      = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
+    const load = async () => {
       try {
-        const [hmR, tvR, patR] = await Promise.all([
+        const [hmR, tvR, velR, revR] = await Promise.all([
           api.get('/customers/heatmap'),
           api.get('/customers/top-viewed'),
-          api.get('/customers/patterns'),
+          api.get('/customers/velocity'),
+          api.get('/customers/revenue-contribution'),
         ]);
         setHeatmap(hmR.data);
         setTopViewed(tvR.data);
-        setPatterns(patR.data);
+        setVelocity(velR.data);
+        setRevContrib(revR.data);
       } catch(e) { console.error(e); }
       finally { setLoading(false); }
     };
-    fetch();
+    load();
   }, []);
 
   const getCellColor = (val) => {
@@ -35,19 +45,24 @@ export default function Customers() {
 
   if (loading) return <div className="loading-wrap"><div className="spinner"/></div>;
 
+  const maxRevenue = Math.max(...revContrib.products.map(p => p.revenue), 1);
+
   return (
     <div>
+      {/* ── Heatmap ── */}
       <div className="card mb-20">
         <div className="flex-between mb-16">
           <div className="section-title">Frequently Bought Together Heatmap</div>
-          
+          <button className="btn btn-outline btn-sm">↓ Export to CSV</button>
         </div>
         <div className="heatmap-wrap">
           <table className="heatmap-table">
             <thead>
               <tr>
                 <th className="heatmap-label">Product Name</th>
-                {heatmap.products.map(p => <th key={p} className="heatmap-col-h">{p.length > 12 ? p.substring(0,12)+'…' : p}</th>)}
+                {heatmap.products.map(p => (
+                  <th key={p} className="heatmap-col-h">{p.length > 12 ? p.substring(0,12)+'…' : p}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -69,56 +84,92 @@ export default function Customers() {
         </div>
       </div>
 
+      {/* ── Bottom 3 cards ── */}
       <div className="grid-3">
+
         {/* Top Viewed */}
         <div className="card">
           <div className="section-title mb-16">Top Viewed Products (Last 30 Days)</div>
+          {topViewed.length === 0 && (
+            <div style={{ color:'var(--text-muted)', fontSize:12 }}>
+              No views yet — open product detail pages to record views
+            </div>
+          )}
           {topViewed.map((item, i) => (
             <div key={i} className="topv-row">
-              <span className="topv-icon">{i === 0 ? '⊙' : i === 1 ? '✦' : '≡'}</span>
+              <span className="topv-rank">#{i+1}</span>
               <span className="topv-name">{item.name}</span>
-              <span className="topv-views">{item.views > 1000 ? (item.views/1000000).toFixed(0)+'M' : item.views}</span>
+              <span className="topv-views">{item.views} view{item.views !== 1 ? 's' : ''}</span>
             </div>
           ))}
-          {topViewed.length === 0 && <div style={{ color:'var(--text-muted)',fontSize:12 }}>No view data yet</div>}
         </div>
 
-        {/* Purchase Patterns */}
+        {/* Sales Velocity */}
         <div className="card">
-          <div className="section-title mb-16">Purchase Pattern Cards</div>
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            {patterns.slice(0,2).map((p, i) => (
-              <div key={i} className="pattern-card">
-                <div className="pattern-icon">🛒</div>
-                <div className="pattern-text">{p.pair} bought together <strong>{p.pct}%</strong> of the time</div>
-              </div>
-            ))}
-            {patterns.length === 0 && <div style={{ color:'var(--text-muted)',fontSize:12 }}>Sell more to see patterns</div>}
+          <div className="section-title mb-4">Sales Velocity Trend</div>
+          <div className="vel-subtitle mb-12">Last 7 days vs previous 7 days</div>
+          <div className="vel-list">
+            {velocity.map((p, i) => {
+              const cfg = TREND_CONFIG[p.trend];
+              return (
+                <div key={i} className="vel-row">
+                  <div className="vel-name">{p.name}</div>
+                  <div className="vel-numbers">
+                    <span className="vel-last7">{p.last7} sold</span>
+                    <span className="vel-prev7">prev: {p.prev7}</span>
+                  </div>
+                  <div
+                    className="vel-badge"
+                    style={{ color: cfg.color, background: cfg.bg }}
+                  >
+                    {cfg.label}
+                    {p.trend !== 'no-sales' && p.trend !== 'stable' && (
+                      <span style={{ fontSize:10, marginLeft:4 }}>
+                        {p.changePct > 0 ? '+' : ''}{p.changePct}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {velocity.length === 0 && (
+              <div style={{ color:'var(--text-muted)', fontSize:12 }}>No sales data yet</div>
+            )}
           </div>
         </div>
 
-        {/* Placement Suggestions */}
+        {/* Revenue Contribution */}
         <div className="card">
-          <div className="section-title mb-16">Product Placement Suggestions</div>
-          <table className="table" style={{ fontSize:12 }}>
-            <thead><tr><th>Product Name</th><th>Suggested</th></tr></thead>
-            <tbody>
-              {patterns.slice(0,3).map((p, i) => {
-                const [a, b] = p.pair.split(' + ');
-                return (
-                  <tr key={i}>
-                    <td>{a}</td>
-                    <td>
-                      <div>{b}</div>
-                      <div style={{ color:'var(--text-muted)', fontSize:11 }}>Confidence: {p.pct}%</div>
-                      <div style={{ color:'var(--accent-green)', fontSize:11 }}>Expected Sales Spike: +15%</div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {patterns.length === 0 && <tr><td colSpan={2} style={{ color:'var(--text-muted)' }}>No patterns yet</td></tr>}
-            </tbody>
-          </table>
+          <div className="section-title mb-4">Revenue Contribution</div>
+          <div className="vel-subtitle mb-12">
+            Total: ${revContrib.totalRevenue?.toLocaleString('en-US', { minimumFractionDigits:2 })}
+          </div>
+          {revContrib.products.length === 0 && (
+            <div style={{ color:'var(--text-muted)', fontSize:12 }}>No sales data yet</div>
+          )}
+          <div className="rev-contrib-list">
+            {revContrib.products.map((p, i) => (
+              <div key={i} className="rc-row">
+                <div className="rc-header">
+                  <span className="rc-name">{p.name}</span>
+                  <span className="rc-pct">{p.pct}%</span>
+                </div>
+                <div className="rc-bar-track">
+                  <div
+                    className="rc-bar-fill"
+                    style={{
+                      width: `${(p.revenue / maxRevenue) * 100}%`,
+                      background: i === 0 ? 'var(--accent-blue)'
+                        : i === 1 ? 'var(--accent-cyan)'
+                        : i === 2 ? 'var(--accent-green)'
+                        : 'rgba(59,130,246,0.4)'
+                    }}
+                  />
+                </div>
+                <div className="rc-revenue">${p.revenue?.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

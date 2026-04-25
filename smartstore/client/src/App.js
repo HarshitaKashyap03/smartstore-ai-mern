@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import api from './api/axios';
 
 import Login      from './pages/Login';
 import Dashboard  from './pages/Dashboard';
@@ -14,7 +13,8 @@ import Recommend  from './pages/Recommend';
 import Alerts     from './pages/Alerts';
 import Billing    from './pages/Billing';
 import PnL        from './pages/PnL';
-import Admin      from './pages/Admin';
+import Admin         from './pages/Admin';
+import ProductDetail from './pages/ProductDetail';
 
 import Sidebar    from './components/layout/Sidebar';
 import Topbar     from './components/layout/Topbar';
@@ -29,35 +29,11 @@ function ProtectedRoute({ children, adminOnly }) {
 }
 
 function AppLayout({ children }) {
-  const location = useLocation();
-  const [alertCount, setAlertCount] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchPendingAlertCount = async () => {
-      try {
-        const { data } = await api.get('/alerts', { params: { status: 'PENDING' } });
-        if (mounted) setAlertCount(Array.isArray(data) ? data.length : 0);
-      } catch {
-        if (mounted) setAlertCount(0);
-      }
-    };
-
-    fetchPendingAlertCount();
-    const intervalId = setInterval(fetchPendingAlertCount, 30000);
-
-    return () => {
-      mounted = false;
-      clearInterval(intervalId);
-    };
-  }, [location.pathname]);
-
   return (
     <div className="app-layout">
       <Sidebar />
       <div className="main-content">
-        <Topbar alertCount={alertCount} />
+        <Topbar />
         <div className="page-body">{children}</div>
       </div>
     </div>
@@ -78,6 +54,7 @@ function AppRoutes() {
       <Route path="/alerts"    element={<ProtectedRoute><AppLayout><Alerts /></AppLayout></ProtectedRoute>} />
       <Route path="/billing"   element={<ProtectedRoute><AppLayout><Billing /></AppLayout></ProtectedRoute>} />
       <Route path="/pnl"       element={<ProtectedRoute><AppLayout><PnL /></AppLayout></ProtectedRoute>} />
+      <Route path="/products/:id" element={<ProtectedRoute><AppLayout><ProductDetail /></AppLayout></ProtectedRoute>} />
       <Route path="/admin"     element={<ProtectedRoute adminOnly><AppLayout><Admin /></AppLayout></ProtectedRoute>} />
       <Route path="*"          element={<Navigate to="/" replace />} />
     </Routes>

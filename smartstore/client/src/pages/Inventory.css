@@ -34,3 +34,6 @@
 .badge-red   { background: rgba(239,68,68,0.15);  color: var(--accent-red);   border: 1px solid rgba(239,68,68,0.3); }
 .badge-amber { background: rgba(245,158,11,0.15); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.3); }
 .mt-20 { margin-top: 20px; }
+
+.product-name-cell:hover .product-link { color: var(--accent-blue); text-decoration: underline; }
+.product-name-cell:hover .product-thumb { border-color: rgba(59,130,246,0.5); }

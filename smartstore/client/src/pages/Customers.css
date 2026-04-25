@@ -16,3 +16,33 @@
 .pattern-card { display: flex; align-items: flex-start; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
 .pattern-icon { font-size: 18px; flex-shrink: 0; }
 .pattern-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ── Top Viewed ── */
+.topv-rank { font-size: 11px; font-weight: 700; color: var(--text-muted); width: 24px; flex-shrink: 0; }
+.topv-row  { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.topv-row:last-child { border-bottom: none; }
+.topv-name  { flex: 1; font-size: 13px; color: var(--text-secondary); }
+.topv-views { font-size: 12px; font-weight: 600; color: var(--accent-blue); flex-shrink: 0; }
+
+/* ── Velocity ── */
+.vel-subtitle { font-size: 11px; color: var(--text-muted); }
+.vel-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+.vel-row { padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.vel-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vel-numbers { display: flex; gap: 10px; margin-bottom: 6px; }
+.vel-last7 { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+.vel-prev7 { font-size: 11px; color: var(--text-muted); }
+.vel-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+
+/* ── Revenue Contribution ── */
+.rev-contrib-list { display: flex; flex-direction: column; gap: 12px; max-height: 340px; overflow-y: auto; }
+.rc-row { display: flex; flex-direction: column; gap: 4px; }
+.rc-header { display: flex; justify-content: space-between; align-items: center; }
+.rc-name { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75%; }
+.rc-pct  { font-size: 12px; font-weight: 700; color: var(--accent-blue); flex-shrink: 0; }
+.rc-bar-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.rc-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.rc-revenue   { font-size: 11px; color: var(--text-muted); }
+
+/* ── Product link in inventory ── */
+.product-link:hover { color: var(--accent-blue); }
