@@ -14,7 +14,8 @@ const PAGE_TITLES = {
   '/alerts':    'Alerts & Notifications',
   '/billing':   'Smart Billing',
   '/pnl':       'Profit & Loss',
-  '/admin':     'Admin Panel / Settings',
+  '/admin':        'Admin Panel / Settings',
+  '/transactions': 'Transaction History',
 };
 
 // Helper: convert array of objects to CSV string
@@ -221,6 +222,25 @@ export default function Topbar() {
         );
         const combined = `P&L SUMMARY\n${summary}\n\nPER-PRODUCT BREAKDOWN\n${products}`;
         downloadCSV(combined, 'profit_loss_export.csv');
+      }
+
+      // ── Transactions ──
+      else if (path === '/transactions') {
+        const { data } = await api.get('/billing/history?page=1&limit=1000');
+        const csv = toCSV(
+          ['Receipt #', 'Date', 'Cashier', 'Items', 'Subtotal', 'Tax', 'Discount', 'Total'],
+          (data.sales || []).map(s => ({
+            'Receipt #': s.receiptNumber,
+            'Date':      new Date(s.createdAt).toLocaleString(),
+            'Cashier':   s.cashierName,
+            'Items':     s.items?.length || 0,
+            'Subtotal':  `$${s.subtotal?.toFixed(2)}`,
+            'Tax':       `$${s.tax?.toFixed(2)}`,
+            'Discount':  `$${s.discount?.toFixed(2)}`,
+            'Total':     `$${s.total?.toFixed(2)}`,
+          }))
+        );
+        downloadCSV(csv, 'all_transactions.csv');
       }
 
       // ── Admin Panel ──

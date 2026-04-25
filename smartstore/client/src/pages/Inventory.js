@@ -66,7 +66,7 @@ export default function Inventory() {
 
   const statusBadge = (s) => {
     if (s === 'In Stock')    return <span className="badge badge-green">IN STOCK</span>;
-    if (s === 'Low')         return <span className="badge badge-amber">LOW</span>;
+    if (s === 'Low')         return <span className="badge badge-red">LOW</span>;
     if (s === 'Out of Stock')return <span className="badge badge-red">OUT</span>;
   };
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import './Billing.css';
@@ -10,6 +11,7 @@ export default function Billing() {
   const [history,    setHistory]    = useState([]);
   const [search,     setSearch]     = useState('');
   const [filterTab,  setFilterTab]  = useState('All');
+  const navigate = useNavigate();
   const [processing,   setProcessing]   = useState(false);
   const [receipt,      setReceipt]      = useState(null);  // sale object to show in modal
 
@@ -184,7 +186,7 @@ export default function Billing() {
                   <div className={`pt-thumb ${outOfStock ? 'oos-thumb' : ''}`}>
                     {p.name[0]}
                   </div>
-                  <div className="pt-name">{p.name}</div>
+                  <div className="pt-name" onClick={e => { e.stopPropagation(); navigate(`/products/${p._id}`); }} style={{ cursor:'pointer', textDecoration:'underline', textDecorationColor:'rgba(59,130,246,0.4)' }} title="View product detail">{p.name}</div>
                   <div className="pt-price">${p.price.toFixed(2)}</div>
 
                   <div className={`pt-stock ${outOfStock ? 'oos-text' : ''}`}>
@@ -194,7 +196,7 @@ export default function Billing() {
                     )}
                   </div>
 
-                 
+                  <div className="pt-conf">88% CONFIDENCE</div>
 
                   <button
                     className={`btn btn-sm pt-add ${outOfStock || atStockLimit ? 'btn-disabled' : 'btn-primary'}`}
@@ -210,7 +212,10 @@ export default function Billing() {
           </div>
 
           {/* Transaction History */}
-          <div className="section-title mt-20 mb-12">Transaction History</div>
+          <div className="flex-between mt-20 mb-12">
+            <div className="section-title" style={{ margin:0 }}>Transaction History</div>
+            <Link to="/transactions" className="btn btn-outline btn-sm">View All →</Link>
+          </div>
           <table className="table">
             <thead>
               <tr><th>Receipt #</th><th>Date & Time</th><th>Cashier</th><th>Items</th><th>Total</th><th>Action</th></tr>

@@ -16,7 +16,12 @@ router.get('/', auth, async (req, res) => {
     const { category, status, search } = req.query;
     let query = {};
     if (category && category !== 'All') query.category = category;
-    if (search) query.name = { $regex: search, $options: 'i' };
+    if (search && search.trim()) {
+      query.$or = [
+        { name: { $regex: search.trim(), $options: 'i' } },
+        { category: { $regex: search.trim(), $options: 'i' } }
+      ];
+    }
 
     let products = await Product.find(query).sort({ createdAt: -1 });
 
