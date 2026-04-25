@@ -15,31 +15,54 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+// Single revenue summary card
+function RevCard({ title, icon, revenue, orders, change, vsLabel, accent }) {
+  const isPos = change >= 0;
+  return (
+    <div className={`rev-card rev-${accent}`}>
+      <div className="rev-card-top">
+        <div className="rev-card-title">{title}</div>
+        <span className="rev-card-icon">{icon}</span>
+      </div>
+      <div className="rev-card-revenue">${revenue?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+      <div className="rev-card-orders">{orders} order{orders !== 1 ? 's' : ''}</div>
+      {change !== null && vsLabel && (
+        <div className={`rev-card-change ${isPos ? 'pos' : 'neg'}`}>
+          {isPos ? '▲' : '▼'} {Math.abs(change)}% {vsLabel}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
-  const [kpi,          setKpi]          = useState(null);
-  const [dailySales,   setDailySales]   = useState([]);
-  const [topProducts,  setTopProducts]  = useState([]);
-  const [alerts,       setAlerts]       = useState([]);
-  const [loading,      setLoading]      = useState(true);
+  const [kpi,         setKpi]         = useState(null);
+  const [dailySales,  setDailySales]  = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [alerts,      setAlerts]      = useState([]);
+  const [revSummary,  setRevSummary]  = useState(null);
+  const [loading,     setLoading]     = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
+    const load = async () => {
       try {
-        const [kpiR, dailyR, topR, alertsR] = await Promise.all([
+        const [kpiR, dailyR, topR, alertsR, revR] = await Promise.all([
           api.get('/analytics/kpi'),
           api.get('/sales/daily'),
           api.get('/sales/top-products'),
           api.get('/alerts?status=PENDING'),
+          api.get('/analytics/revenue-summary'),
         ]);
         setKpi(kpiR.data);
         setDailySales(dailyR.data);
         setTopProducts(topR.data);
         setAlerts(alertsR.data.slice(0, 3));
+        setRevSummary(revR.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     };
-    fetch();
-    const id = setInterval(fetch, 30000);
+    load();
+    const id = setInterval(load, 30000);
     return () => clearInterval(id);
   }, []);
 
@@ -47,7 +70,8 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      {/* KPI Row */}
+
+      {/* ── KPI Row ── */}
       <div className="grid-4 mb-20">
         <div className="kpi-card blue">
           <div className="kpi-label">Total Revenue Today</div>
@@ -81,9 +105,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid-2">
-        {/* Sales Chart */}
+      {/* ── Charts Row ── */}
+      <div className="grid-2 mb-20">
         <div className="card">
           <div className="flex-between mb-16">
             <div className="section-title">Quick Sales Graph (Last 7 Days)</div>
@@ -100,7 +123,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Top Products */}
         <div className="card">
           <div className="flex-between mb-16">
             <div className="section-title">Top 5 Products Widget</div>
@@ -114,24 +136,82 @@ export default function Dashboard() {
               <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip cursor={{ fill: 'rgba(59,130,246,0.08)' }}
                 contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)' }} />
-              <Bar dataKey="qty" fill="#3b82f6" radius={[4,4,0,0]} />
+              <Bar dataKey="qty" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Alerts Panel */}
-      <div className="card mt-20">
+      {/* ── Revenue Summary (Idea 3) ── */}
+      {revSummary && (
+        <div className="card mb-20">
+          <div className="flex-between mb-16">
+            <div className="section-title">Quick Revenue Summary</div>
+            <span className="badge badge-blue">LIVE</span>
+          </div>
+          <div className="rev-summary-grid">
+            <RevCard
+              title="Today"
+              icon="📅"
+              revenue={revSummary.today.revenue}
+              orders={revSummary.today.orders}
+              change={revSummary.today.change}
+              vsLabel={revSummary.today.vsLabel}
+              accent="blue"
+            />
+            <RevCard
+              title="Yesterday"
+              icon="🕐"
+              revenue={revSummary.yesterday.revenue}
+              orders={revSummary.yesterday.orders}
+              change={revSummary.yesterday.change}
+              vsLabel={revSummary.yesterday.vsLabel}
+              accent="gray"
+            />
+            <RevCard
+              title="This Week"
+              icon="📆"
+              revenue={revSummary.thisWeek.revenue}
+              orders={revSummary.thisWeek.orders}
+              change={revSummary.thisWeek.change}
+              vsLabel={revSummary.thisWeek.vsLabel}
+              accent="green"
+            />
+            <RevCard
+              title="This Month"
+              icon="🗓"
+              revenue={revSummary.thisMonth.revenue}
+              orders={revSummary.thisMonth.orders}
+              change={revSummary.thisMonth.change}
+              vsLabel={revSummary.thisMonth.vsLabel}
+              accent="purple"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Alerts Panel ── */}
+      <div className="card">
         <div className="flex-between mb-16">
           <div className="section-title">Recent Alerts Panel</div>
           <span className="text-muted" style={{ fontSize: 12, cursor: 'pointer' }}>···</span>
         </div>
-        {alerts.length === 0 && <div className="text-muted" style={{ fontSize: 13 }}>No pending alerts</div>}
+        {alerts.length === 0 && (
+          <div className="text-muted" style={{ fontSize: 13 }}>No pending alerts</div>
+        )}
         {alerts.map(alert => (
           <div key={alert._id} className="alert-row">
-            <div className="alert-dot" style={{ background: alert.type === 'Low Stock' ? 'var(--accent-red)' : alert.type === 'Demand Spike' ? 'var(--accent-amber)' : 'var(--accent-green)' }} />
+            <div className="alert-dot" style={{
+              background: alert.type === 'Low Stock' ? 'var(--accent-red)'
+                : alert.type === 'Demand Spike' ? 'var(--accent-amber)'
+                : 'var(--accent-green)'
+            }} />
             <div className="alert-content">
-              <span className={`badge ${alert.type === 'Low Stock' ? 'badge-red' : alert.type === 'Demand Spike' ? 'badge-amber' : 'badge-green'}`}>
+              <span className={`badge ${
+                alert.type === 'Low Stock' ? 'badge-red'
+                : alert.type === 'Demand Spike' ? 'badge-amber'
+                : 'badge-green'
+              }`}>
                 [{alert.type.toUpperCase()}]
               </span>
               <span className="alert-msg">{alert.message}</span>

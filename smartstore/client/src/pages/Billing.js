@@ -194,7 +194,7 @@ export default function Billing() {
                     )}
                   </div>
 
-                  <div className="pt-conf">88% CONFIDENCE</div>
+                 
 
                   <button
                     className={`btn btn-sm pt-add ${outOfStock || atStockLimit ? 'btn-disabled' : 'btn-primary'}`}

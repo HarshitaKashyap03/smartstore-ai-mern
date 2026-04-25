@@ -116,4 +116,64 @@ router.get('/pnl', auth, async (req, res) => {
   }
 });
 
+
+// GET /api/analytics/revenue-summary
+// Returns Today, Yesterday, This Week, This Month revenue + orders + change %
+router.get('/revenue-summary', auth, async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Today
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const todayEnd   = new Date(now); todayEnd.setHours(23,59,59,999);
+    const todaySales = await Sale.find({ createdAt: { $gte: todayStart, $lte: todayEnd } });
+    const todayRev   = todaySales.reduce((s, sale) => s + sale.total, 0);
+
+    // Yesterday
+    const yday      = new Date(now); yday.setDate(yday.getDate() - 1);
+    const ydayStart = new Date(yday); ydayStart.setHours(0,0,0,0);
+    const ydayEnd   = new Date(yday); ydayEnd.setHours(23,59,59,999);
+    const ydaySales = await Sale.find({ createdAt: { $gte: ydayStart, $lte: ydayEnd } });
+    const ydayRev   = ydaySales.reduce((s, sale) => s + sale.total, 0);
+
+    // This Week (Mon to today)
+    const weekStart = new Date(now);
+    const day = weekStart.getDay();
+    weekStart.setDate(weekStart.getDate() - (day === 0 ? 6 : day - 1));
+    weekStart.setHours(0,0,0,0);
+    const weekSales = await Sale.find({ createdAt: { $gte: weekStart, $lte: todayEnd } });
+    const weekRev   = weekSales.reduce((s, sale) => s + sale.total, 0);
+
+    // Last Week (for comparison)
+    const lastWeekStart = new Date(weekStart); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    const lastWeekEnd   = new Date(weekStart); lastWeekEnd.setMilliseconds(-1);
+    const lastWeekSales = await Sale.find({ createdAt: { $gte: lastWeekStart, $lte: lastWeekEnd } });
+    const lastWeekRev   = lastWeekSales.reduce((s, sale) => s + sale.total, 0);
+
+    // This Month
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const monthSales = await Sale.find({ createdAt: { $gte: monthStart, $lte: todayEnd } });
+    const monthRev   = monthSales.reduce((s, sale) => s + sale.total, 0);
+
+    // Last Month (for comparison)
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const lastMonthSales = await Sale.find({ createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd } });
+    const lastMonthRev   = lastMonthSales.reduce((s, sale) => s + sale.total, 0);
+
+    const pct = (curr, prev) => prev > 0 ? parseFloat(((curr - prev) / prev * 100).toFixed(1)) : 0;
+    const fmt = v => parseFloat(v.toFixed(2));
+
+    res.json({
+      today:     { revenue: fmt(todayRev),  orders: todaySales.length,  change: pct(todayRev, ydayRev),       vsLabel: 'vs yesterday'  },
+      yesterday: { revenue: fmt(ydayRev),   orders: ydaySales.length,   change: null,                         vsLabel: ''              },
+      thisWeek:  { revenue: fmt(weekRev),   orders: weekSales.length,   change: pct(weekRev, lastWeekRev),    vsLabel: 'vs last week'  },
+      thisMonth: { revenue: fmt(monthRev),  orders: monthSales.length,  change: pct(monthRev, lastMonthRev),  vsLabel: 'vs last month' },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
+

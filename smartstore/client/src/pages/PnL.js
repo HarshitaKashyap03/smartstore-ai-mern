@@ -76,7 +76,7 @@ export default function PnL() {
               <span>Average Margin:</span>
               <span>
                 {pnl?.avgMargin}%
-                <span className="badge badge-blue" style={{ marginLeft:6, fontSize:10 }}>Confidence 88%</span>
+              
               </span>
             </div>
           </div>
