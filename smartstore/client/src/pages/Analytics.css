@@ -1,0 +1,33 @@
+/* ── Period summary bar ── */
+.analytics-summary {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.as-item {
+  flex: 1;
+  padding: 12px 18px;
+  text-align: center;
+}
+.as-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}
+.as-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.as-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}

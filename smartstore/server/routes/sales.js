@@ -125,4 +125,69 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+
+// GET /api/sales/trend?period=DAILY|WEEKLY|MONTHLY
+// Returns chart-ready data for the selected period
+router.get('/trend', auth, async (req, res) => {
+  try {
+    const period = (req.query.period || 'WEEKLY').toUpperCase();
+    const result = [];
+
+    if (period === 'DAILY') {
+      // Last 24 hours split into 2-hour blocks
+      for (let i = 11; i >= 0; i--) {
+        const end   = new Date();
+        end.setHours(end.getHours() - i * 2, 0, 0, 0);
+        const start = new Date(end);
+        start.setHours(start.getHours() - 2);
+        const sales = await Sale.find({ createdAt: { $gte: start, $lte: end } });
+        const total = sales.reduce((s, sale) => s + sale.total, 0);
+        result.push({
+          label: `${String(start.getHours()).padStart(2,'0')}:00`,
+          total: parseFloat(total.toFixed(2)),
+          orders: sales.length,
+        });
+      }
+    }
+
+    else if (period === 'WEEKLY') {
+      // Last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date  = new Date();
+        date.setDate(date.getDate() - i);
+        const start = new Date(date); start.setHours(0,0,0,0);
+        const end   = new Date(date); end.setHours(23,59,59,999);
+        const sales = await Sale.find({ createdAt: { $gte: start, $lte: end } });
+        const total = sales.reduce((s, sale) => s + sale.total, 0);
+        result.push({
+          label: start.toLocaleDateString('en-US', { weekday: 'short' }),
+          total: parseFloat(total.toFixed(2)),
+          orders: sales.length,
+        });
+      }
+    }
+
+    else if (period === 'MONTHLY') {
+      // Last 30 days
+      for (let i = 29; i >= 0; i--) {
+        const date  = new Date();
+        date.setDate(date.getDate() - i);
+        const start = new Date(date); start.setHours(0,0,0,0);
+        const end   = new Date(date); end.setHours(23,59,59,999);
+        const sales = await Sale.find({ createdAt: { $gte: start, $lte: end } });
+        const total = sales.reduce((s, sale) => s + sale.total, 0);
+        result.push({
+          label: start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          total: parseFloat(total.toFixed(2)),
+          orders: sales.length,
+        });
+      }
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
