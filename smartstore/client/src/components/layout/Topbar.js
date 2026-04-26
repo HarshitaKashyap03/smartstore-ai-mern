@@ -310,7 +310,7 @@ export default function Topbar() {
       <div className="topbar-left">
         <div className="topbar-brand">
           <span className="brand-icon">S</span>
-          <span className="brand-name">SmartStore AI</span>
+          <span className="brand-name">SmartStore</span>
         </div>
         <span className="topbar-sep">/</span>
         <span className="topbar-title">{title}</span>

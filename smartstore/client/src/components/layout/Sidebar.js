@@ -28,7 +28,7 @@ export default function Sidebar() {
         <div className="logo-icon">S</div>
         <div>
           <div className="logo-text">SmartStore</div>
-          <div className="logo-sub">AI</div>
+          
         </div>
       </div>
 
