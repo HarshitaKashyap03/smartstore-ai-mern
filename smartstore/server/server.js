@@ -7,12 +7,13 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
 const io = new Server(server, {
-  cors: { origin: 'http://localhost:3000', methods: ['GET', 'POST'] }
+  cors: { origin: clientUrl, methods: ['GET', 'POST'] }
 });
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: clientUrl }));
 app.use(express.json());
 
 // Make io accessible in routes
@@ -45,3 +46,4 @@ mongoose.connect(process.env.MONGO_URI)
     );
   })
   .catch(err => console.error(err));
+// trigger restart 4
