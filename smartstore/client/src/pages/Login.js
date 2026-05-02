@@ -11,7 +11,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [name,     setName]     = useState('');
   const [showPw,   setShowPw]   = useState(false);
-  const [remember, setRemember] = useState(false);
   const { login, register, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -54,7 +53,7 @@ export default function Login() {
         <div className="login-logo">
           <div className="login-logo-icon">S</div>
           <div>
-            <div className="login-brand">SmartStore AI</div>
+            <div className="login-brand">SmartStore </div>
             <div className="login-tagline">Intelligence at your storefront.</div>
           </div>
         </div>
@@ -131,16 +130,7 @@ export default function Login() {
             </div>
           </div>
 
-          {tab === 'login' && (
-            <div className="login-row">
-              <label className="checkbox-label">
-                <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
-                <span>Remember Me</span>
-              </label>
-              <span className="forgot-link">Forgot Password?</span>
-            </div>
-          )}
-
+          
           <button className="btn btn-primary w-full login-btn" type="submit" disabled={loading}>
             {loading ? '...' : tab === 'login' ? '⚡ Sign In' : '✦ Create Account'}
           </button>

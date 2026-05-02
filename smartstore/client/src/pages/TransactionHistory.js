@@ -231,7 +231,7 @@ export default function TransactionHistory() {
               <div className="receipt-brand-th">
                 <div className="receipt-logo-th">S</div>
                 <div>
-                  <div className="receipt-store-th">SmartStore AI</div>
+                  <div className="receipt-store-th">SmartStore </div>
                   <div className="receipt-tag-th">Intelligence at your storefront</div>
                 </div>
               </div>
