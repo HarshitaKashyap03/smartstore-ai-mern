@@ -157,7 +157,7 @@ export default function Billing() {
           </div>
 
           <div className="billing-filter-tabs mb-16">
-            {['All','Categories','Low Stock','Overstock','Non-Selling','Demand'].map(t => (
+            {['All','Low Stock','Overstock','Non-Selling'].map(t => (
               <button
                 key={t}
                 className={`billing-tab ${filterTab===t?'active':''}`}

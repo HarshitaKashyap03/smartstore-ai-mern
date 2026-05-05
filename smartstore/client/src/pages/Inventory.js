@@ -8,15 +8,15 @@ const emptyForm = { name:'', sku:'', category:'', stock:0, minStock:10, price:0,
 
 export default function Inventory() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [search,   setSearch]   = useState('');
-  const [filterCat,setFilterCat]= useState('All');
-  const [filterSt, setFilterSt] = useState('All');
-  const [showModal,setShowModal] = useState(false);
-  const [editing,  setEditing]  = useState(null);
-  const [form,     setForm]     = useState(emptyForm);
-  const [saving,   setSaving]   = useState(false);
+  const [products,    setProducts]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [search,      setSearch]      = useState('');
+  const [filterCat,   setFilterCat]   = useState('All');
+  const [filterSt,    setFilterSt]    = useState('All');
+  const [showModal,   setShowModal]   = useState(false);
+  const [editing,     setEditing]     = useState(null);
+  const [form,        setForm]        = useState(emptyForm);
+  const [saving,      setSaving]      = useState(false);
   const [predictions, setPredictions] = useState([]);
 
   const loadProducts = async () => {
@@ -24,7 +24,7 @@ export default function Inventory() {
       const params = {};
       if (filterCat !== 'All') params.category = filterCat;
       if (filterSt !== 'All')  params.status    = filterSt;
-      if (search)               params.search    = search;
+      if (search)              params.search    = search;
       const { data } = await api.get('/products', { params });
       setProducts(data);
     } catch(e) { toast.error('Failed to load products'); }
@@ -40,8 +40,12 @@ export default function Inventory() {
 
   useEffect(() => { loadProducts(); loadPredictions(); }, [filterCat, filterSt, search]);
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit = (p) => { setEditing(p._id); setForm({ name:p.name, sku:p.sku, category:p.category, stock:p.stock, minStock:p.minStock, price:p.price, costPrice:p.costPrice }); setShowModal(true); };
+  const openAdd  = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
+  const openEdit = (p) => {
+    setEditing(p._id);
+    setForm({ name:p.name, sku:p.sku, category:p.category, stock:p.stock, minStock:p.minStock, price:p.price, costPrice:p.costPrice });
+    setShowModal(true);
+  };
 
   const handleSave = async (e) => {
     e.preventDefault(); setSaving(true);
@@ -65,9 +69,9 @@ export default function Inventory() {
   };
 
   const statusBadge = (s) => {
-    if (s === 'In Stock')    return <span className="badge badge-green">IN STOCK</span>;
-    if (s === 'Low')         return <span className="badge badge-red">LOW</span>;
-    if (s === 'Out of Stock')return <span className="badge badge-red">OUT</span>;
+    if (s === 'In Stock')     return <span className="badge badge-green">IN STOCK</span>;
+    if (s === 'Low')          return <span className="badge badge-amber">LOW</span>;
+    if (s === 'Out of Stock') return <span className="badge badge-red">OUT</span>;
   };
 
   const categories = ['All', 'Audio', 'Gaming', 'Wearables', 'Electronics', 'Beverages', 'Food'];
@@ -78,7 +82,13 @@ export default function Inventory() {
         <div className="flex-between mb-16">
           <h2 className="page-h2">Full Product Table</h2>
           <div className="flex gap-8">
-            <input className="form-control" style={{ width: 200 }} placeholder="🔍 Search Inventory" value={search} onChange={e => setSearch(e.target.value)} />
+            <input
+              className="form-control"
+              style={{ width: 200 }}
+              placeholder="🔍 Search Inventory"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
             <select className="form-control" style={{ width: 130 }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
               {categories.map(c => <option key={c}>{c}</option>)}
             </select>
@@ -90,22 +100,40 @@ export default function Inventory() {
 
         <button className="btn btn-primary mb-16" onClick={openAdd}>+ Add New Product</button>
 
-        {loading ? <div className="loading-wrap"><div className="spinner"/></div> : (
+        {loading ? (
+          <div className="loading-wrap"><div className="spinner"/></div>
+        ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>Product Name</th><th>SKU</th><th>Category</th>
-                <th>Stock</th><th>Price</th><th>Status</th><th>Actions</th>
+                <th>Product Name</th>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {products.map(p => (
-                <tr key={p._id}>
-                  <td><div className="product-name-cell" style={{ cursor:'pointer' }} onClick={() => navigate(`/products/${p._id}`)}>
-                    <div className="product-thumb">{p.name[0]}</div>
-                    <span className="product-link">{p.name}</span>
-                  </div></td>
-                  <td><code style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.sku}</code></td>
+                <tr
+                  key={p._id}
+                  className="inventory-row"
+                  onClick={() => navigate(`/products/${p._id}`)}
+                >
+                  <td>
+                    <div className="product-name-cell">
+                      <div className="product-thumb">{p.name[0]}</div>
+                      <span className="product-link">
+                        {p.name}
+                        <span className="row-arrow">↗</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <code style={{ fontSize:12, color:'var(--text-muted)' }}>{p.sku}</code>
+                  </td>
                   <td>{p.category}</td>
                   <td>
                     <span className="stock-num">{p.stock}</span>
@@ -115,29 +143,36 @@ export default function Inventory() {
                   <td>{statusBadge(p.status)}</td>
                   <td>
                     <div className="flex gap-8">
-                      <button className="btn btn-outline btn-sm" onClick={() => openEdit(p)}>✏ Edit</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>🗑</button>
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={e => { e.stopPropagation(); openEdit(p); }}
+                      >✏ Edit</button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={e => { e.stopPropagation(); handleDelete(p._id); }}
+                      >🗑</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {products.length === 0 && <tr><td colSpan={7} style={{ textAlign:'center', color:'var(--text-muted)', padding: 32 }}>No products found</td></tr>}
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ textAlign:'center', color:'var(--text-muted)', padding:32 }}>
+                    No products found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Restock Suggestions — only show products that are actually Low or Out of Stock */}
+      {/* Restock Suggestions */}
       {(() => {
-        // Cross-reference predictions with actual product stock status
-        // Only include products whose current stock is at or below minStock
         const needRestock = products
           .filter(p => p.status === 'Low' || p.status === 'Out of Stock')
           .map(p => {
-            // Find matching prediction for smart qty suggestion
             const pred = predictions.find(pr => pr._id === p._id);
-            // Restock qty = predicted 30-day demand - current stock + safety buffer (10)
-            // Minimum restock of 1 so we never show +0
             const suggestedQty = pred
               ? Math.max(1, pred.predicted30Days - p.stock + 10)
               : Math.max(1, p.minStock * 2 - p.stock);
@@ -151,7 +186,7 @@ export default function Inventory() {
             {needRestock.slice(0, 4).map(p => (
               <div key={p._id} className="card restock-card">
                 <div className="section-title">Restock Suggestion Panel</div>
-                <div className="restock-sub">Prioritized Items based on AI Predictions.</div>
+                <div className="restock-sub">Prioritized Items based on Demand Predictions.</div>
                 <div className="restock-item">
                   <div className={`product-thumb ${p.status === 'Out of Stock' ? 'thumb-red' : 'thumb-amber'}`}>
                     {p.name[0]}
@@ -165,9 +200,10 @@ export default function Inventory() {
                       </span>
                     </div>
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => openEdit(p)}>
-                    Restock Now
-                  </button>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => openEdit(p)}
+                  >Restock Now</button>
                 </div>
               </div>
             ))}
@@ -184,32 +220,38 @@ export default function Inventory() {
               <div className="grid-2">
                 <div className="form-group">
                   <label className="form-label">Product Name</label>
-                  <input className="form-control" value={form.name} onChange={e => setForm({...form,name:e.target.value})} required />
+                  <input className="form-control" value={form.name} onChange={e => setForm({...form, name:e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label className="form-label">SKU</label>
-                  <input className="form-control" value={form.sku} onChange={e => setForm({...form,sku:e.target.value})} required />
+                  <input className="form-control" value={form.sku} onChange={e => setForm({...form, sku:e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Category</label>
-                  <input className="form-control" value={form.category} onChange={e => setForm({...form,category:e.target.value})} required />
+                  <input className="form-control" value={form.category} onChange={e => setForm({...form, category:e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Stock Qty</label>
-                  <input className="form-control" type="number" value={form.stock} onChange={e => setForm({...form,stock:+e.target.value})} required />
+                  <input className="form-control" type="number" value={form.stock} onChange={e => setForm({...form, stock:+e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Min Stock</label>
+                  <input className="form-control" type="number" value={form.minStock} onChange={e => setForm({...form, minStock:+e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Price ($)</label>
-                  <input className="form-control" type="number" step="0.01" value={form.price} onChange={e => setForm({...form,price:+e.target.value})} required />
+                  <input className="form-control" type="number" step="0.01" value={form.price} onChange={e => setForm({...form, price:+e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Cost Price ($)</label>
-                  <input className="form-control" type="number" step="0.01" value={form.costPrice} onChange={e => setForm({...form,costPrice:+e.target.value})} />
+                  <input className="form-control" type="number" step="0.01" value={form.costPrice} onChange={e => setForm({...form, costPrice:+e.target.value})} />
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Product'}</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Product'}
+                </button>
               </div>
             </form>
           </div>
