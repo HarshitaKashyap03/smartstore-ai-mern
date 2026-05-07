@@ -175,5 +175,41 @@ router.get('/revenue-summary', auth, async (req, res) => {
   }
 });
 
+
+router.get('/today-pnl', auth, async (req, res) => {
+  try {
+    const start = new Date(); start.setHours(0,0,0,0);
+    const end   = new Date(); end.setHours(23,59,59,999);
+
+    const todaySales = await Sale.find({ createdAt: { $gte: start, $lte: end } });
+
+    // Get all products to look up costPrice
+    const Product = require('../models/Product');
+    const products = await Product.find({});
+    const costMap  = {};
+    products.forEach(p => { costMap[p._id.toString()] = p.costPrice || 0; });
+
+    let todayRevenue = 0;
+    let todayCost    = 0;
+
+    todaySales.forEach(sale => {
+      sale.items.forEach(item => {
+        const revenue = item.unitPrice * item.qty;
+        const cost    = (costMap[item.product?.toString()] || 0) * item.qty;
+        todayRevenue += revenue;
+        todayCost    += cost;
+      });
+    });
+
+    res.json({
+      todayRevenue: parseFloat(todayRevenue.toFixed(2)),
+      todayCost:    parseFloat(todayCost.toFixed(2)),
+      todayProfit:  parseFloat((todayRevenue - todayCost).toFixed(2)),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
 
