@@ -97,12 +97,7 @@ export default function PnL() {
               <span>Total Cost:</span>
               <span>${pnl?.totalCost?.toFixed(2)}</span>
             </div>
-            <div className="pnl-sum-row">
-              <span>Average Margin:</span>
-              <span style={{ color:'var(--accent-green)', fontWeight:600 }}>
-                {pnl?.avgMargin}%
-              </span>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -118,7 +113,7 @@ export default function PnL() {
               <th>Revenue</th>
               <th>Cost</th>
               <th>Profit</th>
-              <th>Margin</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -151,16 +146,12 @@ export default function PnL() {
                 }}>
                   ${(p.revenue - p.cost).toFixed(2)}
                 </td>
-                <td>
-                  <span className={`badge ${p.margin >= 20 ? 'badge-green' : p.margin >= 0 ? 'badge-blue' : 'badge-red'}`}>
-                    {p.margin}%
-                  </span>
-                </td>
+                
               </tr>
             ))}
             {!pnl?.products?.length && (
               <tr>
-                <td colSpan={6} style={{ textAlign:'center', color:'var(--text-muted)', padding:30 }}>
+                <td colSpan={5} style={{ textAlign:'center', color:'var(--text-muted)', padding:30 }}>
                   No sales data yet
                 </td>
               </tr>

@@ -74,48 +74,78 @@ router.get('/category', auth, async (req, res) => {
 // GET monthly P&L
 router.get('/pnl', auth, async (req, res) => {
   try {
-    const sales = await Sale.find();
+    const sales    = await Sale.find();
     const products = await Product.find();
-    const costMap = {};
-    products.forEach(p => { costMap[p._id.toString()] = p.costPrice; });
-
-    let totalRevenue = 0, totalCost = 0;
+ 
+    // Build TWO lookup maps — by ID and by name
+    // Name lookup is the reliable fallback since item.name
+    // is always stored as a plain string in every sale
+    const costMapById   = {};
+    const costMapByName = {};
+    products.forEach(p => {
+      costMapById[p._id.toString()]                  = p.costPrice || 0;
+      costMapByName[p.name.toLowerCase().trim()]     = p.costPrice || 0;
+    });
+ 
+    // Helper: get cost price using ID first, name as fallback
+    const getCostPrice = (item) => {
+      const byId   = item.product ? costMapById[item.product.toString()] : undefined;
+      const byName = costMapByName[item.name?.toLowerCase().trim()];
+      // Use whichever is defined and non-zero
+      if (byId !== undefined) return byId;
+      if (byName !== undefined) return byName;
+      return 0;
+    };
+ 
+    let totalRevenue = 0;
+    let totalCost    = 0;
     const productStats = {};
-
+ 
     sales.forEach(sale => {
-      totalRevenue += sale.total;
+      totalRevenue += sale.total || 0;
       sale.items.forEach(item => {
-        const pid = item.product?.toString();
-        const cost = (costMap[pid] || 0) * item.qty;
-        totalCost += cost;
-        if (!productStats[item.name]) {
-          productStats[item.name] = { name: item.name, revenue: 0, cost: 0, qty: 0 };
+        const costPrice = getCostPrice(item);
+        const itemCost  = costPrice * item.qty;
+        totalCost += itemCost;
+ 
+        const key = item.name;
+        if (!productStats[key]) {
+          productStats[key] = { name: key, revenue: 0, cost: 0, qty: 0 };
         }
-        productStats[item.name].revenue += item.total;
-        productStats[item.name].cost += cost;
-        productStats[item.name].qty += item.qty;
+        productStats[key].revenue += item.total || (item.unitPrice * item.qty) || 0;
+        productStats[key].cost    += itemCost;
+        productStats[key].qty     += item.qty;
       });
     });
-
+ 
     const productList = Object.values(productStats).map(p => ({
-      ...p,
+      name:    p.name,
       revenue: parseFloat(p.revenue.toFixed(2)),
-      cost: parseFloat(p.cost.toFixed(2)),
-      margin: p.revenue > 0 ? Math.round(((p.revenue - p.cost) / p.revenue) * 100) : 0
+      cost:    parseFloat(p.cost.toFixed(2)),
+      qty:     p.qty,
+      // Margin per product
+      margin:  p.revenue > 0
+        ? Math.round(((p.revenue - p.cost) / p.revenue) * 100)
+        : 0,
     }));
-
+ 
+    // Overall average margin from totals — most accurate
+    const avgMargin = totalRevenue > 0
+      ? Math.round(((totalRevenue - totalCost) / totalRevenue) * 100)
+      : 0;
+ 
     res.json({
       totalRevenue: parseFloat(totalRevenue.toFixed(2)),
-      totalCost: parseFloat(totalCost.toFixed(2)),
-      totalProfit: parseFloat((totalRevenue - totalCost).toFixed(2)),
-      avgMargin: totalRevenue > 0 ? Math.round(((totalRevenue - totalCost) / totalRevenue) * 100) : 0,
-      products: productList.sort((a, b) => b.margin - a.margin)
+      totalCost:    parseFloat(totalCost.toFixed(2)),
+      totalProfit:  parseFloat((totalRevenue - totalCost).toFixed(2)),
+      avgMargin,
+      products:     productList.sort((a, b) => b.margin - a.margin),
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
+ 
 
 // GET /api/analytics/revenue-summary
 // Returns Today, Yesterday, This Week, This Month revenue + orders + change %
